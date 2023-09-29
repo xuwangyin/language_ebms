@@ -1,9 +1,10 @@
-\documentclass[11pt]{article}
+\documentclass{article}
 \usepackage{booktabs}
 \usepackage{graphicx}
 \usepackage{amsmath}
 \usepackage{amsfonts}
-\usepackage{hyperref}
+% \usepackage{hyperref}
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
 % \usepackage{algorithm}
 % \usepackage{algpseudocode}
 \usepackage{algorithm}
@@ -14,6 +15,24 @@
 \usepackage{siunitx}
 \usepackage{subcaption}
 \usepackage{multirow}
+
+\usepackage{booktabs}
+\usepackage{graphicx}
+
+
+% Language setting
+% Replace `english' with e.g. `spanish' to change the document language
+\usepackage[english]{babel}
+
+% Set page size and margins
+% Replace `letterpaper' with `a4paper' for UK/EU standard size
+\usepackage[letterpaper,top=2cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
+
+% Useful packages
+% \usepackage{amsmath}
+% \usepackage{graphicx}
+% \usepackage[colorlinks=true, allcolors=blue]{hyperref}
+
 
 
 
@@ -117,7 +136,7 @@ For real-world language modeling tasks, it may be advantageous to employ more so
 
 \subsection{Training the Energy Function \(E_\theta\)}
 
-We now outline the training algorithm employed to optimize the energy function \(E_\theta\). The primary goal is to enable \(E_\theta\) to approximate the target distribution \( p_{\text{data}}\) by training the model to discriminate between samples drawn from \( p_{\text{data}} \) and negative samples generated with the attack algorithm as outlined in \cref{sec:attack}.
+We outline the training algorithm employed to optimize the energy function \(E_\theta\) in \cref{alg:training-ebm}. The primary goal is to enable \(E_\theta\) to approximate the target distribution \( p_{\text{data}}\) by training the model to discriminate between samples drawn from \( p_{\text{data}} \) and negative samples generated with the attack algorithm as outlined in \cref{sec:attack}. 
 
   \begin{algorithm}
     \caption{Training Sequence Energy-Based Model with Iterative Multi-Step Adversarial Examples}
@@ -167,7 +186,7 @@ After training both \(P_{LM}\) and \(E_\theta\), we enhance the quality of gener
 % 3. \(P_{LM}\) should serve as a reasonably accurate initial point for sampling; if the initially generated samples are too far removed from the target distribution, adversarial refinement may prove insufficient for aligning them closely with the target distribution.
 
 % By satisfying these conditions, our framework leverages the strengths of both energy-based models and adversarial training methodologies to produce samples of improved quality, consistent with the target distribution.
-
+\newpage
 \section{Experiments}
 \subsection{Task}
 \label{sec:task}
@@ -209,7 +228,7 @@ where \( \text{correctness}_i \) is the correctness of the \( i^{th} \) sequence
 By using this synthetic dataset, we aim to empirically demonstrate the efficacy of our proposed adversarial training approach in mitigating spurious modes, thereby enhancing the capabilities of \(P_{LM}\) in sequence generation tasks.
 \subsection{Training}
 
-We set up our training protocol based  \cite{ResidualEBM2023}.
+We set up our training protocol based on  \cite{ResidualEBM2023}.
 The full training details for \(P_{LM}\) and \(E_\theta\) (pretraining, after attaching a language model head) can be found in \cref{tab:hyperparameters}.
 In terms of the training objective, both models are trained by maximizing the conditional likelihood of the next token \( x_{i+1} \) given the sequence of previous tokens \( x_1, x_2, \ldots, x_i \):
 
@@ -219,7 +238,7 @@ In terms of the training objective, both models are trained by maximizing the co
 \end{equation}
 
 
-Following pretraining, \(E_\theta\) undergoes a fine-tuning process aimed at approximating the target distribution \(P_\text{data}\). In the baseline approach of Residual-EBM \cite{deng2019residual},  \(E_\theta\) is fine-tuned using the conventional binary cross-entropy loss function. This fine-tuning process utilizes 1000 samples drawn from \(P_\text{data}\) and 1000 synthetic samples from \(P_{LM}\), spanning 5 epochs with early stopping. In contrast, our proposed methodology fine-tunes \(E_\theta\) according to \cref{alg:training-ebm}, employing the same number of \(P_\text{data}\) and \(P_{LM}\) samples but extending the training to 55 epochs, also with early stopping.  
+Following pretraining, \(E_\theta\) undergoes a fine-tuning process aimed at approximating the target distribution \(P_\text{data}\). In the baseline approach of Residual-EBM \citep{deng2019residual},  \(E_\theta\) is fine-tuned using the conventional binary cross-entropy loss function. This fine-tuning process utilizes 1000 samples drawn from \(P_\text{data}\) and 1000 synthetic samples from \(P_{LM}\), spanning 5 epochs with early stopping. In contrast, our proposed methodology fine-tunes \(E_\theta\) according to \cref{alg:training-ebm}, employing the same number of \(P_\text{data}\) and \(P_{LM}\) samples but extending the training to 55 epochs, also with early stopping.  We use 5 attack steps in \cref{alg:training-ebm}.
 % It is noteworthy that our samples for training \(P_{LM}\) and finetuning \(E_\theta\) is significantly fewer compared to the 100,000 samples used in \cite{ResidualEBM2023} (but the number of samples for pretraining \(E_\theta\) is the same).
 
 Owing to the inherent stochasticity involved in the training procedure, we note fluctuations in model performance when utilizing Algorithm \ref{alg:training-ebm}. To account for this variability, we conduct the experiment ten times and report both individual and aggregate performance metrics.
@@ -228,7 +247,7 @@ Owing to the inherent stochasticity involved in the training procedure, we note 
   \caption{Training setups for \(P_{LM}\) and \(E_\theta\) (pretraining)}
   \label{tab:hyperparameters}
   \centering
-  \resizebox{0.85\textwidth}{!}{%
+  \resizebox{0.6\textwidth}{!}{%
   \begin{tabular}{@{}lll@{}}
     \toprule
      & \(P_{\text{LM}}\)                                                                                                         & \(E_\theta\) (pretraining)                                                                                                              \\ \midrule
@@ -277,8 +296,8 @@ The Residual-EBM methodology employs importance sampling to produce novel sequen
   
   \begin{figure}[H]
       \centering
-      \includegraphics[width=0.8\linewidth]{correct_curve}
-      \caption{Average correctness of adversarially perturbed sequences as the number of  attack steps are varied.}
+      \includegraphics[width=0.5\linewidth]{correct_curve}
+      \caption{Average correctness of perturbed sequences as the number of  attack steps are varied}
       \label{fig:correct_curve}
   \end{figure}
 
